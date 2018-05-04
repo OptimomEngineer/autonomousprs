@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find control)/launch/autonomouspr.launch" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find control)/rviz/default.rviz" />
+</launch>

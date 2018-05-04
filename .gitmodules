@@ -4,3 +4,9 @@
 [submodule "src/sweep-ros"]
 	path = src/sweep-ros
 	url = git@github.com:scanse/sweep-ros.git
+[submodule "src/ros-laser_lines"]
+	path = src/laser_lines
+	url = git@github.com:timn/ros-laser_lines.git
+[submodule "racecar-controllers"]
+	path = src/racecar-controllers
+	url = git@github.com:frk2/racecar-controllers.git
