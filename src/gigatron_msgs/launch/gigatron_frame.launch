@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!-- gigatron_testing.launch
+     Launch file for Gigatron hardware
+
+     @author  Syler Wagner  <syler@mit.edu>
+     
+     @date    2016-08-17    syler   creation
+    -->
+
+<launch>
+
+	<arg name="car" value="gigatron" />
+	<arg name="rviz" default="true" /> <!-- display robot in RViz -->
+
+	<!-- URDF model with robot state publisher -->
+	<include file="$(find gigatron_hardware)/launch/xacro.launch" >
+		<arg name="car" value="gigatron_frame" />
+	</include>
+
+	<!-- car launch file -->
+	<include file="$(find gigatron_hardware)/launch/car.launch" >
+		<arg name="car" value="$(arg car)" />
+		<arg name="rviz" value="$(arg rviz)" />
+		<arg name="gps" value="false" />
+	</include>
+
+	<!-- front LIDAR  -->
+	<include file="$(find gigatron_hardware)/launch/sensors/rplidar.launch" >
+		<arg name="frame_id" default="laser_link" />
+		<arg name="topic" default="scan_rp" />
+		<arg name="port" value="/dev/ttyUSB0" />
+	</include>
+	<include file="$(find gigatron_hardware)/launch/laser_angle_filter.launch" >
+    	<arg name="filter_name" value="rplidar_angle_filter" />
+    	<arg name="input_topic" value="scan_rp" />
+    	<arg name="output_topic" value="scan_front" />
+	</include>
+	<node name="front_scan_relay" type="relay" pkg="topic_tools" args="/scan_front /scan"/>
+
+	<!-- back LIDAR  -->
+	<include file="$(find gigatron_hardware)/launch/sensors/xvlidar.launch" >
+		<arg name="frame_id" default="back_laser_link" />
+		<arg name="topic" default="scan_xv" />
+	</include>
+	<include file="$(find gigatron_hardware)/launch/laser_angle_filter.launch" >
+    	<arg name="filter_name" value="xvlidar_angle_filter" />
+    	<arg name="input_topic" value="scan_xv" />
+    	<arg name="output_topic" value="scan_back" />
+	</include>
+	<node name="back_scan_relay" type="relay" pkg="topic_tools" args="/scan_back /scan"/>	
+
+	<!-- gps -->
+	<include file="$(find gigatron_hardware)/launch/sensors/gps.launch" >
+		<arg name="rmc" default="false" doc="If 'true', fixes will be generated from RMC. If 'false', fixes will be generated based on the GGA sentences. Using GGA sentences allows for approximated covariance output while RMC provides velocity information." />
+		<arg name="odom" default="true" doc="set to 'true' to generate gps-based odometry" />
+		<arg name="port" value="/dev/ttyUSB1" />
+	</include>
+
+</launch>

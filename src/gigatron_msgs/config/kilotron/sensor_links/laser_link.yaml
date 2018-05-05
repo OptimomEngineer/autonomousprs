@@ -1,0 +1,10 @@
+# config file for static transform publisher between base_link and laser_link on Kilotron
+frame_id: "base_link" 
+child_frame_id: "laser_link"
+x: 0.1016   # 4" forward from center of car
+y: 0        # center of car
+z: 0.1143   # 4.5" up from wheel axis
+yaw: 0
+pitch: 0
+roll: 0
+period: 100

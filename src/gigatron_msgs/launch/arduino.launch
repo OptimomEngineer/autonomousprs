@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<!-- arduino.launch
+     Gigatron Arduino control launch file
+
+     @author  Syler Wagner  <syler@mit.edu>
+     
+     @date    2015-09-11    syler   creation
+ 
+     Usage Instructions:
+        Gigatron: roslaunch gigatron_hardware arduino.launch
+        Kilotron: roslaunch gigatron_hardware arduino.launch kilotron:=true
+    -->
+
+    <launch>
+
+        <arg name="car" default="gigatron" /> <!-- Kilotron or Gigatron? -->
+
+        <!-- load car platform parameters into "car" namespace -->
+        <rosparam file="$(find gigatron_hardware)/config/$(arg car)_platform.yaml" ns="car" command="load" /> 
+
+        <!-- Arduino port setting -->
+        <arg name="mac" value="$(optenv OS_X false)" /> <!-- auto detect operating system -->
+        <arg unless="$(arg mac)" name="port" default="/dev/tty.arduino" />
+        <arg if="$(arg mac)" name="port" default="$(optenv ARDUINO_PORT)" />
+<!--         <arg if="$(arg mac)" name="port" default="/dev/tty.usbmodem14221" />
+ -->
+        <!-- rosserial_python -->
+        <node pkg="rosserial_python" type="serial_node.py" name="arduino_node" output="screen">
+            <param name="port" value="$(arg port)"/>
+            <param name="baud" value="115200"/>
+        </node>
+
+        <!-- Arduino drive controller node that summarizes car state and publishes arduino commands -->
+        <node pkg="gigatron_hardware" type="arduino_drive_controller" name="arduino_drive_controller" output="screen" />
+
+        <!-- publish odometry and tf based on wheel velocities -->
+        <node name="odom_tf_publisher" type="odom_tf_publisher" pkg="gigatron">
+            <param name="rate" value="200" />
+            <param name="odom_topic" value="/odom" />
+            <param name="state_topic" value="/state" />
+        </node> 
+
+    </launch>

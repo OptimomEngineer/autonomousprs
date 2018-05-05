@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<!-- kilotron.launch
+     Launch file for Kilotron hardware
+
+     @author  Syler Wagner  <syler@mit.edu>
+     
+     @date    2016-08-17    syler   creation
+    -->
+
+<launch>
+
+	<arg name="semiautomatic" default="true" doc="true for autonomous steering with RC throttle" />
+
+	<arg name="car" value="kilotron" />
+	<arg name="lidar" default="xvlidar" doc="'rplidar' or 'xvlidar'?" /> 
+	<arg name="rviz" default="false" /> <!-- display robot in RViz -->
+	<arg name="gps" default="true" doc="using GPS sensor or no?" />
+	<arg name="zed" default="true" doc="using ZED sensor or no?" />
+
+	<!-- URDF model with robot state publisher -->
+	<include file="$(find gigatron_hardware)/launch/xacro.launch" >
+		<arg name="car" value="$(arg car)" />
+	</include>
+
+	<!-- car launch file -->
+	<include file="$(find gigatron_hardware)/launch/car.launch" >
+		<arg name="car" value="$(arg car)" />
+		<arg name="semiautomatic" value="$(arg semiautomatic)" />
+		<arg name="rviz" value="$(arg rviz)" />
+		<arg name="gps" value="$(arg gps)" />
+		<arg name="zed" value="$(arg zed)" />
+	</include>
+	<!-- ZED laser scans -->
+	<include if="$(arg zed)" file="$(find gigatron_hardware)/launch/sensors/zed_scan.launch" />
+
+	<!-- front LIDAR  -->
+	<include file="$(find gigatron_hardware)/launch/sensors/xvlidar.launch" />
+	<group ns="xvlidar">
+	<!-- the laser angle filter unfortunately does not work at removing the middle part of a laser scan, so it won't work on inverted LIDAR -->
+	<include file="$(find scan_filters)/launch/angle_filter.launch" >
+    	<arg name="filter_name" value="angle_filter" />
+    	<arg name="config" value="laser_angle_filter_forward_180_degrees" />
+    	<arg name="input_topic" value="scan" />
+    	<arg name="output_topic" value="scan/forward" /> 
+	</include>
+	</group>
+
+</launch>

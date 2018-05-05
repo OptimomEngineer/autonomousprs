@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<robot
+    xmlns:xacro="http://www.ros.org/wiki/xacro"
+    name="gigatron">
+
+    <xacro:include filename="$(find gigatron_hardware)/urdf/sensors/zed.urdf.xacro" />
+    <xacro:include filename="$(find gigatron_hardware)/urdf/common.urdf.xacro" />
+    <xacro:include filename="$(find gigatron_hardware)/urdf/sensors/bno055_imu.urdf.xacro" />
+    <xacro:include filename="$(find gigatron_hardware)/urdf/sensors/rplidar.urdf.xacro" />
+    <xacro:include filename="$(find gigatron_hardware)/urdf/sensors/xvlidar.urdf.xacro" />
+
+    <!-- Note: Base Link is the center of the robot, right under the batteries. -->
+
+    <!-- Physical Constant Macros -->
+    <xacro:property name="M_PI" value="3.1415926535897931" />
+
+    <!-- Dimension Macros -->
+    <xacro:property name="car_length" value="1.257" /> 
+    <!--28.5" front to back wheel axes
+        Front bumper is 25.5" (0.6477m) front from base,
+        Rear bumper is 24" (0.6096m) from base. 1.5" offset.-->
+
+    <xacro:property name="wheelbase_length" value="0.7239" /> 
+    <xacro:property name="wheelbase_width" value="0.5842" /> <!-- 24" -->
+    <xacro:property name="car_height" value="0.2794" /> <!-- 11"? -->
+    <xacro:property name="wheel_radius" value="0.12446" /> <!-- 4.9" -->
+    <xacro:property name="wheel_width" value="0.075" /> 
+
+    <!-- IMU placement relative to base_link --> 
+    <xacro:property name="imu_x" value="${-wheelbase_length/2 - 0.19}" /> 
+    <xacro:property name="imu_y" value="-0.035" />
+    <xacro:property name="imu_z" value="0.3" /> 
+
+    <!-- XV LIDAR low-mounted on front, placement relative to base_link -->
+<!--     <xacro:property name="xvlidar_x" value="${wheelbase_length/2 + 0.19}" /> 
+    <xacro:property name="xvlidar_y" value="0" />
+    <xacro:property name="xvlidar_z" value="-0.03" /> 
+    <xacro:property name="xvlidar_roll" value="${M_PI}" />
+    <xacro:property name="xvlidar_pitch" value="0" />
+    <xacro:property name="xvlidar_yaw" value="${M_PI}" /> -->
+
+    <!--RPLIDAR placement relative to base_link --> 
+    <xacro:property name="rplidar_x" value=".5588" /> 
+    <xacro:property name="rplidar_y" value="0" />
+    <xacro:property name="rplidar_z" value="0.2286" /> 
+    <xacro:property name="rplidar_roll" value="0" />
+    <xacro:property name="rplidar_pitch" value="0" />
+    <xacro:property name="rplidar_yaw" value="0" /> 
+
+    <!-- ZED placement relative to base_link -->
+    <xacro:property name="zed_x" value="0.19" /> 
+    <xacro:property name="zed_y" value="0.0" />
+    <xacro:property name="zed_z" value="0.36" /> 
+
+
+    <!-- Main body -->
+    <link name="base_link">
+        <inertial>
+            <mass value="0.2" />
+            <origin xyz="0 0 0" /> 
+            <inertia  ixx="0.2" ixy="0.0"  ixz="0.0"  iyy="0.2"  iyz="0.0"  izz="0.2" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${car_height/4+0.02}" rpy="0 0 0" />
+            <geometry>
+                 <box size="${car_length} ${wheelbase_width} ${car_height}" />
+             </geometry>
+            <material name="Grey"/>
+        </visual>
+        <collision>
+            <origin xyz=".031 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="${car_length} ${wheelbase_width} ${car_height}" />
+            </geometry>
+        </collision>
+    </link>
+    <!-- base_footprint (ground) to base_link -->
+    <link name="base_footprint" />
+    <joint name="base_link_footprint_joint" type="fixed" >
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 ${car_height/2+wheel_radius}" rpy="0 0 0" />
+    </joint>  
+
+    <!-- the front left wheel -->
+    <joint name="front_left_wheel_joint" type="revolute" >
+        <limit lower="-0.76096" upper="0.76096" effort="100" velocity="10" />
+        <axis xyz="0 0 1" />
+        <parent link="base_link" />
+        <child link="front_left_wheel_link" />
+        <origin xyz="${wheelbase_length/2} ${wheelbase_width/2} -${wheel_radius}" rpy="0 0 0" /> <!-- ? -->
+    </joint>
+    <link name="front_left_wheel_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" /> 
+            <inertia  ixx="0.01" ixy="0.0"  ixz="0.0"  iyy="0.01"  iyz="0.0"  izz="0.01" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+            <material name="Black"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <!-- the front right wheel -->
+    <joint name="front_right_wheel_joint" type="revolute" >
+        <limit lower="-0.76096" upper="0.76096" effort="100" velocity="10" />
+        <axis xyz="0 0 1" />
+        <parent link="base_link" />
+        <child link="front_right_wheel_link" />
+        <origin xyz="${wheelbase_length/2} -${wheelbase_width/2} -${wheel_radius}" rpy="0 0 0" /> <!-- ? -->
+    </joint>
+    <link name="front_right_wheel_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" /> 
+            <inertia  ixx="0.01" ixy="0.0"  ixz="0.0"  iyy="0.01"  iyz="0.0"  izz="0.01" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+            <material name="Black"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <!-- the back left wheel -->
+    <joint name="low_left_wheel_joint" type="fixed" >
+        <!-- <axis xyz="0 1 0" /> -->
+        <parent link="base_link" />
+        <child link="low_left_wheel_link" />
+        <origin xyz="-${wheelbase_length/2} ${wheelbase_width/2} -${wheel_radius}" rpy="0 0 0" /> <!-- ? -->
+    </joint>
+    <link name="low_left_wheel_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" /> 
+            <inertia  ixx="0.01" ixy="0.0"  ixz="0.0"  iyy="0.01"  iyz="0.0"  izz="0.01" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+            <material name="Black"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <!-- the back right wheel -->
+    <joint name="low_right_wheel_joint" type="fixed" >
+        <!-- <axis xyz="0 1 0" /> -->
+        <parent link="base_link" />
+        <child link="low_right_wheel_link" />
+        <origin xyz="-${wheelbase_length/2} -${wheelbase_width/2} -${wheel_radius}" rpy="0 0 0" /> <!-- ? -->
+    </joint>
+    <link name="low_right_wheel_link">
+        <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" /> 
+            <inertia  ixx="0.01" ixy="0.0"  ixz="0.0"  iyy="0.01"  iyz="0.0"  izz="0.01" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+            <material name="Black"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <!-- RPLIDAR -->
+    <xacro:rplidar_v0 
+        name="rplidar" 
+        parent="base_link">
+        <origin 
+            xyz="${rplidar_x} ${rplidar_y} ${rplidar_z}" 
+            rpy="${rplidar_roll} ${rplidar_pitch} ${rplidar_yaw}" /> 
+    </xacro:rplidar_v0>
+
+    <!-- XV LIDAR -->
+    <!-- <xacro:xvlidar_v0 
+        name="xvlidar" 
+        parent="base_link">
+        <origin 
+            xyz="${xvlidar_x} ${xvlidar_y} ${xvlidar_z}" 
+            rpy="${xvlidar_roll} ${xvlidar_pitch} ${xvlidar_yaw}" /> 
+    </xacro:xvlidar_v0> -->
+
+    <!-- IMU -->
+    <xacro:bno055_imu_v0 
+        name="imu" 
+        parent="base_link">
+        <origin 
+            xyz="${imu_x} ${imu_y} ${imu_z}" 
+            rpy="0 0 0" /> 
+    </xacro:bno055_imu_v0>
+
+    <!-- ZED -->
+    <xacro:zed_v0 
+        name="zed" 
+        parent="base_link">
+        <origin 
+            xyz="${zed_x} ${zed_y} ${zed_z}" 
+            rpy="0 0 0" /> 
+    </xacro:zed_v0>
+
+</robot>

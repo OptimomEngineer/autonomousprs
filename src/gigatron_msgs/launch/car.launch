@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<!-- car.launch
+     Launch file for Gigatron and Kilotron hardware
+
+     @author  Syler Wagner  <syler@mit.edu>
+     
+     @date    2016-08-17    syler   creation
+
+     Launch Gigatron:
+     	roslaunch gigatron_hardware car.launch gigatron:=true
+     Launch Kilotron:
+       	roslaunch gigatron_hardware car.launch gigatron:=false
+    -->
+
+<launch>
+
+
+	<arg name="car" doc="'kilotron' or 'gigatron'?" />
+	<arg name="semiautomatic" doc="true for autonomous steering with RC throttle" />
+	<arg name="estop" doc="true to enable LIDAR-based estop" />
+
+	<arg name="gps" doc="using GPS sensor or no?" />
+	<arg name="zed" doc="using ZED sensor or no?" />
+
+	<arg name="rviz" default="false" /> <!-- display robot in RViz -->
+
+
+	<!-- Arduino -->
+	<include file="$(find gigatron_hardware)/launch/arduino.launch" >
+		<arg name="car" value="$(arg car)" />
+	</include>
+
+	<!-- publish semiautomatic mode command message, if applicable -->
+	<node if="$(arg semiautomatic)" pkg="rostopic" name="semiautomatic_pub" type="rostopic" args="pub -l /arduino/command/mode std_msgs/UInt8 1" output="screen"/>
+
+	<!-- estop -->
+	<group if="$(arg estop)" >
+		<include file="$(find gigatron_hardware)/launch/estop.launch" >
+			<arg name="input_topic" doc="scan topic the filter subscribes to" default="scan" />
+			<arg name="estop_topic" default="arduino/command/stop" />
+		</include>
+	</group>
+
+
+	<!-- sensors -->
+
+	<!-- Adafruit 9DOF IMU -->
+	<group if="$(optenv NVIDIA_JETSON false)"> <!-- auto detect platform and only launch on Jetsons -->
+		<include file="$(find gigatron_hardware)/launch/sensors/imu.launch" >
+			<arg name="car" value="$(arg car)" />
+			<arg name="frame_id" default="imu_link"/>
+			<arg name="update_rate" default="20" />
+		</include>
+	</group>
+
+	<!-- launch GPS sensor if applicable -->
+	<group if="$(arg gps)" >
+		<include file="$(find gigatron_hardware)/launch/sensors/gps.launch" >
+			<arg name="rmc" default="true" doc="If 'true', fixes will be generated from RMC. If 'false', fixes will be generated based on the GGA sentences. Using GGA sentences allows for approximated covariance output while RMC provides velocity information." />
+			<arg name="odom" default="true" doc="set to 'true' to generate gps-based odometry" />
+		</include>
+	</group>
+
+	<!-- launch ZED sensor if applicable -->
+	<group unless="$(optenv OS_X false)"> <!-- auto detect platform and only launch on Jetsons -->
+		<include if="$(arg zed)" file="$(find gigatron_hardware)/launch/sensors/zed.launch" />
+	</group>
+
+	<!-- /sensors -->
+
+	<!-- RViz -->
+	<include if="$(arg rviz)" file="$(find gigatron)/launch/rviz.launch" >
+		<arg name="config" default="car"/>
+	</include>
+
+</launch>
