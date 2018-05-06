@@ -44,5 +44,6 @@
   <param name="port" value="/dev/ttyACM0"/>
   <param name="baud" value="115200"/>
   </node>
+  <node pkg="rostopic" type="rostopic" name="arbitrary_name" args="pub -r 5 /arduino/command/mode std_msgs/UInt8 'data: 2' " output="screen"/>
 </launch>
 
