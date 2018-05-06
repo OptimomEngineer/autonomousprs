@@ -6,7 +6,7 @@
             <param name="serial_baudrate"     type="int"    value="115200"/>
             <param name="frame_id"            type="string" value="laser_frame"/>
             <param name="rotation_speed"      type="int" value="3"/>
-            <param name="sample_rate" type="int" value="500"/>
+            <param name="sample_rate" type="int" value="1000"/>
 
     </node>
 
