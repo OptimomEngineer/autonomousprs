@@ -1,0 +1,4 @@
+<launch>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find control)/rviz/default.rviz" />
+    <node pkg="topic_tools" type="transform" name="arbitrary_name" args="/arduino/motors /rpm std_msgs/Float32 -- '-m.rpm_left'" output="screen"/>
+</launch>
